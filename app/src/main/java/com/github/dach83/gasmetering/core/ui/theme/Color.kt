@@ -1,4 +1,4 @@
-package com.github.dach83.gasmetering.ui.theme
+package com.github.dach83.gasmetering.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
