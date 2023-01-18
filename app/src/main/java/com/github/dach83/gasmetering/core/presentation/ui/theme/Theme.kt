@@ -1,4 +1,4 @@
-package com.github.dach83.gasmetering.core.ui.theme
+package com.github.dach83.gasmetering.core.presentation.ui.theme
 
 import android.app.Activity
 import android.os.Build

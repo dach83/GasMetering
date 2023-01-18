@@ -1,4 +1,4 @@
-package com.github.dach83.gasmetering.core.ui.theme
+package com.github.dach83.gasmetering.core.presentation.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
