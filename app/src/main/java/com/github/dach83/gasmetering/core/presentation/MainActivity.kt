@@ -11,6 +11,7 @@ import com.github.dach83.gasmetering.core.presentation.ui.theme.Theme
 import com.github.dach83.gasmetering.features.NavGraphs
 import com.ramcosta.composedestinations.DestinationsNavHost
 
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
