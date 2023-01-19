@@ -8,9 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.github.dach83.gasmetering.core.presentation.ui.theme.Theme
-import com.github.dach83.gasmetering.features.NavGraphs
-import com.ramcosta.composedestinations.DestinationsNavHost
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,7 +19,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    DestinationsNavHost(navGraph = NavGraphs.root)
+                    MainScreen()
                 }
             }
         }

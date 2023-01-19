@@ -64,7 +64,7 @@ dependencies {
     implementation "androidx.compose.material3:material3:$compose_material3_version"
 
     // Navigation
-    implementation "io.github.raamcosta.compose-destinations:core:$navigation_version"
+    implementation "io.github.raamcosta.compose-destinations:animations-core:$navigation_version"
     ksp "io.github.raamcosta.compose-destinations:ksp:$navigation_version"
 
     // Debug
