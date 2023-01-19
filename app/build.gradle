@@ -81,6 +81,7 @@ dependencies {
 
     // Test
     testImplementation "junit:junit:$junit_version"
+    testImplementation "com.google.truth:truth:$google_truth_version"
 
     // AndroidTest
     androidTestImplementation "androidx.test.ext:junit:$junit_ext_version"
