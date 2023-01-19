@@ -1,5 +1,6 @@
 package com.github.dach83.gasmetering.features.openexcelfile.presentation
 
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -27,7 +28,7 @@ fun OpenExcelFileScreen(
         Text(text = "Open Excel file screen")
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = {
-            navigator.navigate(AbonentsScreenDestination())
+            navigator.navigate(AbonentsScreenDestination(Uri.EMPTY))
         }) {
             Text(text = "Open abonents")
         }
