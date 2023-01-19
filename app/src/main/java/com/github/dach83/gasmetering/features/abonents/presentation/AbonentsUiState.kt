@@ -7,6 +7,10 @@ data class AbonentsUiState(
         isLoading = true
     )
 
+    fun loaded() = copy(
+        isLoading = false
+    )
+
     companion object {
         val INITIAL = AbonentsUiState(
             isLoading = false
