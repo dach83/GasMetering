@@ -1,6 +1,7 @@
 package com.github.dach83.gasmetering.features.abonents.presentation
 
 import android.net.Uri
+import com.github.dach83.gasmetering.fake.FakeLoadAbonents
 import com.github.dach83.gasmetering.rule.CoroutineRule
 import com.google.common.truth.Truth.assertThat
 import io.mockk.mockk
@@ -16,38 +17,49 @@ class AbonentsViewModelTest {
     @get:Rule
     val coroutineRule = CoroutineRule()
 
-    private val excelUri: Uri = mockk()
+    private val fakeExcelUri: Uri = mockk()
+    private val fakeLoadAbonents = FakeLoadAbonents()
 
     @Test
     fun `check initial state`() {
-        val sut = AbonentsViewModel()
+        val sut = createAbonentsViewModel()
         val expected = AbonentsUiState.INITIAL
-
         assertThat(sut.uiState).isEqualTo(expected)
     }
 
     @Test
     fun `start loading excel file updates state to loading`() {
-        val sut = AbonentsViewModel()
-        val expected = AbonentsUiState(
-            isLoading = true
-        )
+        val sut = createAbonentsViewModel()
 
-        sut.loadExcelFile(excelUri)
+        sut.loadExcelFile(fakeExcelUri)
 
-        assertThat(sut.uiState).isEqualTo(expected)
+        assertThat(sut.uiState.isLoading).isTrue()
     }
 
     @Test
-    fun `successful load excel file updates ui state to loaded`() = runTest {
-        val sut = AbonentsViewModel()
-        val expected = AbonentsUiState(
-            isLoading = false
-        )
+    fun `successful load excel file updates state to loaded`() = runTest {
+        val sut = createAbonentsViewModel()
 
-        sut.loadExcelFile(excelUri)
+        sut.loadExcelFile(fakeExcelUri)
         advanceUntilIdle()
 
-        assertThat(sut.uiState).isEqualTo(expected)
+        assertThat(sut.uiState.isLoading).isFalse()
+        assertThat(sut.uiState.errorMessage).isNull()
     }
+
+    @Test
+    fun `unsuccessful load excel file updates state to error`() = runTest {
+        val sut = createAbonentsViewModel()
+        fakeLoadAbonents.errorMode()
+
+        sut.loadExcelFile(fakeExcelUri)
+        advanceUntilIdle()
+
+        assertThat(sut.uiState.isLoading).isFalse()
+        assertThat(sut.uiState.errorMessage).isNotNull()
+    }
+
+    private fun createAbonentsViewModel() = AbonentsViewModel(
+        loadAbonents = fakeLoadAbonents
+    )
 }

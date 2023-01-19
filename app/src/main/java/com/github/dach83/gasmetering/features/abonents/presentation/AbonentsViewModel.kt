@@ -6,13 +6,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.dach83.gasmetering.features.abonents.domain.usecase.LoadAbonents
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AbonentsViewModel @Inject constructor() : ViewModel() {
+class AbonentsViewModel @Inject constructor(
+    private val loadAbonents: LoadAbonents
+) : ViewModel() {
 
     var uiState by mutableStateOf(AbonentsUiState.INITIAL)
         private set
@@ -24,7 +27,12 @@ class AbonentsViewModel @Inject constructor() : ViewModel() {
 
         loadingJob?.cancel()
         loadingJob = viewModelScope.launch {
-            uiState = uiState.loaded()
+            try {
+                val abonents = loadAbonents(excelUri)
+                uiState = uiState.loaded(abonents)
+            } catch (cause: Exception) {
+                uiState = uiState.error(0)
+            }
         }
     }
 }
