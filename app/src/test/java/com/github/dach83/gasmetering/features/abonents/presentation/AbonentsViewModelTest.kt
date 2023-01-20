@@ -2,10 +2,12 @@ package com.github.dach83.gasmetering.features.abonents.presentation
 
 import android.net.Uri
 import com.github.dach83.gasmetering.fake.FakeLoadAbonents
+import com.github.dach83.gasmetering.models.fakeAbonents
 import com.github.dach83.gasmetering.rule.CoroutineRule
 import com.google.common.truth.Truth.assertThat
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -21,19 +23,20 @@ class AbonentsViewModelTest {
     private val fakeLoadAbonents = FakeLoadAbonents()
 
     @Test
-    fun `check initial state`() {
+    fun `check initial state`() = runTest {
         val sut = createAbonentsViewModel()
-        val expected = AbonentsUiState.INITIAL
-        assertThat(sut.uiState).isEqualTo(expected)
+        val uiState = sut.uiState.first()
+        assertThat(uiState).isEqualTo(AbonentsUiState.INITIAL)
     }
 
     @Test
-    fun `start loading excel file updates state to loading`() {
+    fun `start loading excel file updates state to loading`() = runTest {
         val sut = createAbonentsViewModel()
 
         sut.loadExcelFile(fakeExcelUri)
 
-        assertThat(sut.uiState.isLoading).isTrue()
+        val uiState = sut.uiState.first()
+        assertThat(uiState.loadingProgress).isNotNull()
     }
 
     @Test
@@ -41,10 +44,22 @@ class AbonentsViewModelTest {
         val sut = createAbonentsViewModel()
 
         sut.loadExcelFile(fakeExcelUri)
-        advanceUntilIdle()
 
-        assertThat(sut.uiState.isLoading).isFalse()
-        assertThat(sut.uiState.errorMessage).isNull()
+        advanceUntilIdle()
+        val uiState = sut.uiState.first()
+        assertThat(uiState.loadingProgress).isNull()
+        assertThat(uiState.errorMessage).isNull()
+    }
+
+    @Test
+    fun `successful load excel file displays all abonents`() = runTest {
+        val sut = createAbonentsViewModel()
+
+        sut.loadExcelFile(fakeExcelUri)
+
+        advanceUntilIdle()
+        val abonents = sut.filteredAbonents.first()
+        assertThat(abonents).containsExactlyElementsIn(fakeAbonents)
     }
 
     @Test
@@ -53,10 +68,36 @@ class AbonentsViewModelTest {
         fakeLoadAbonents.errorMode()
 
         sut.loadExcelFile(fakeExcelUri)
-        advanceUntilIdle()
 
-        assertThat(sut.uiState.isLoading).isFalse()
-        assertThat(sut.uiState.errorMessage).isNotNull()
+        advanceUntilIdle()
+        val uiState = sut.uiState.first()
+        assertThat(uiState.loadingProgress).isNull()
+        assertThat(uiState.errorMessage).isNotNull()
+    }
+
+    @Test
+    fun `empty search displays no abonents`() = runTest {
+        val sut = createAbonentsViewModel()
+        sut.loadExcelFile(fakeExcelUri)
+
+        sut.startSearch(searchQuery = "")
+
+        advanceUntilIdle()
+        val abonents = sut.filteredAbonents.first()
+        assertThat(abonents).isEmpty()
+    }
+
+    @Test
+    fun `cancel search displays all abonents`() = runTest {
+        val sut = createAbonentsViewModel()
+        sut.loadExcelFile(fakeExcelUri)
+        sut.startSearch()
+
+        sut.cancelSearch()
+
+        advanceUntilIdle()
+        val abonents = sut.filteredAbonents.first()
+        assertThat(abonents).containsExactlyElementsIn(fakeAbonents)
     }
 
     private fun createAbonentsViewModel() = AbonentsViewModel(
