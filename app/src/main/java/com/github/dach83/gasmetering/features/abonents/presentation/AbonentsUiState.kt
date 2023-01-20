@@ -3,28 +3,34 @@ package com.github.dach83.gasmetering.features.abonents.presentation
 import androidx.annotation.StringRes
 
 data class AbonentsUiState(
-    val isLoading: Boolean,
-    val loadingProgress: Byte,
+    val loadingProgress: Byte?,
+    val searchQuery: String?,
     @StringRes val errorMessage: Int?
 ) {
+    val isLoading = loadingProgress != null
+    val isSearching = searchQuery != null
+
     fun loading(progress: Byte = 0) = copy(
-        isLoading = true,
         loadingProgress = progress
     )
 
     fun loaded() = copy(
-        isLoading = false
+        loadingProgress = null
     )
 
     fun error(@StringRes errorMessage: Int) = copy(
-        isLoading = false,
+        loadingProgress = null,
         errorMessage = errorMessage
+    )
+
+    fun startSearch(searchQuery: String) = copy(
+        searchQuery = searchQuery
     )
 
     companion object {
         val INITIAL = AbonentsUiState(
-            isLoading = false,
-            loadingProgress = 0,
+            loadingProgress = null,
+            searchQuery = null,
             errorMessage = null
         )
     }

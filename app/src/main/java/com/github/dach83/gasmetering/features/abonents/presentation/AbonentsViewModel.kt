@@ -22,14 +22,17 @@ class AbonentsViewModel @Inject constructor(
 
     private val allAbonents = MutableStateFlow<List<Abonent>>(emptyList())
     val filteredAbonents: Flow<List<Abonent>> =
-        combine(allAbonents, uiState) { abonents, _ ->
-            abonents
+        combine(allAbonents, uiState) { allAbonents, uiState ->
+            when (uiState.searchQuery) {
+                "" -> emptyList()
+                else -> allAbonents
+            }
         }
 
     private var loadingJob: Job? = null
 
     fun loadExcelFile(excelUri: Uri) {
-        mutableUiState.update { it.loading(progress = 0) }
+        mutableUiState.update { it.loading() }
         loadingJob?.cancel()
         loadingJob = viewModelScope.launch {
             try {
@@ -39,8 +42,12 @@ class AbonentsViewModel @Inject constructor(
                 }
                 mutableUiState.update { it.loaded() }
             } catch (cause: Exception) {
-                mutableUiState.update { it.error(R.string.app_name) }
+                mutableUiState.update { it.error(R.string.error_message) }
             }
         }
+    }
+
+    fun startSearch(searchQuery: String = "") {
+        mutableUiState.update { it.startSearch(searchQuery) }
     }
 }
