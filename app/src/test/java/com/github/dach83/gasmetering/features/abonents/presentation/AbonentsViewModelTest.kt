@@ -42,8 +42,8 @@ class AbonentsViewModelTest {
         val sut = createAbonentsViewModel()
 
         sut.loadExcelFile(fakeExcelUri)
-        advanceUntilIdle()
 
+        advanceUntilIdle()
         assertThat(sut.uiState.isLoading).isFalse()
         assertThat(sut.uiState.errorMessage).isNull()
         assertThat(sut.uiState.abonents).containsExactlyElementsIn(fakeAbonents)
@@ -55,8 +55,8 @@ class AbonentsViewModelTest {
         fakeLoadAbonents.errorMode()
 
         sut.loadExcelFile(fakeExcelUri)
-        advanceUntilIdle()
 
+        advanceUntilIdle()
         assertThat(sut.uiState.isLoading).isFalse()
         assertThat(sut.uiState.errorMessage).isNotNull()
         assertThat(sut.uiState.abonents).isEmpty()
