@@ -1,19 +1,18 @@
 package com.github.dach83.gasmetering.features.abonents.presentation
 
 import androidx.annotation.StringRes
-import com.github.dach83.gasmetering.features.abonents.domain.model.Abonent
 
 data class AbonentsUiState(
-    val abonents: List<Abonent>,
     val isLoading: Boolean,
+    val loadingProgress: Byte,
     @StringRes val errorMessage: Int?
 ) {
-    fun loading() = copy(
-        isLoading = true
+    fun loading(progress: Byte = 0) = copy(
+        isLoading = true,
+        loadingProgress = progress
     )
 
-    fun loaded(abonents: List<Abonent>) = copy(
-        abonents = abonents,
+    fun loaded() = copy(
         isLoading = false
     )
 
@@ -24,8 +23,8 @@ data class AbonentsUiState(
 
     companion object {
         val INITIAL = AbonentsUiState(
-            abonents = emptyList(),
             isLoading = false,
+            loadingProgress = 0,
             errorMessage = null
         )
     }

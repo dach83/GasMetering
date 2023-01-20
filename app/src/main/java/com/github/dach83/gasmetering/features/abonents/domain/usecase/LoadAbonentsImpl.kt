@@ -6,7 +6,9 @@ import javax.inject.Inject
 
 class LoadAbonentsImpl @Inject constructor() : LoadAbonents {
 
-    override suspend fun invoke(excelUri: Uri): List<Abonent> {
-        return emptyList()
+    override suspend fun invoke(
+        excelUri: Uri,
+        onLoading: suspend (progress: Byte, abonents: List<Abonent>) -> Unit
+    ) {
     }
 }

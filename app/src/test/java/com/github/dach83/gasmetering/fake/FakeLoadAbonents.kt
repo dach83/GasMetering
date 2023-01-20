@@ -10,9 +10,12 @@ class FakeLoadAbonents : LoadAbonents {
     private var abonents: List<Abonent> = fakeAbonents
     private var error: Exception? = null
 
-    override suspend fun invoke(excelUri: Uri): List<Abonent> {
+    override suspend fun invoke(
+        excelUri: Uri,
+        onLoading: suspend (progress: Byte, abonents: List<Abonent>) -> Unit
+    ) {
         error?.let { throw it }
-        return abonents
+        onLoading(100, abonents)
     }
 
     fun errorMode() {
