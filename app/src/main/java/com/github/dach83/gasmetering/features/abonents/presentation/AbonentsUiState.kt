@@ -7,8 +7,6 @@ data class AbonentsUiState(
     val searchQuery: String?,
     @StringRes val errorMessage: Int?
 ) {
-    val isLoading = loadingProgress != null
-    val isSearching = searchQuery != null
 
     fun loading(progress: Byte = 0) = copy(
         loadingProgress = progress
@@ -23,7 +21,7 @@ data class AbonentsUiState(
         errorMessage = errorMessage
     )
 
-    fun startSearch(searchQuery: String) = copy(
+    fun search(searchQuery: String?) = copy(
         searchQuery = searchQuery
     )
 

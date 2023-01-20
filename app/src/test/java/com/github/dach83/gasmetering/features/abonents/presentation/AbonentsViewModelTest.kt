@@ -36,7 +36,7 @@ class AbonentsViewModelTest {
         sut.loadExcelFile(fakeExcelUri)
 
         val uiState = sut.uiState.first()
-        assertThat(uiState.isLoading).isTrue()
+        assertThat(uiState.loadingProgress).isNotNull()
     }
 
     @Test
@@ -47,7 +47,7 @@ class AbonentsViewModelTest {
 
         advanceUntilIdle()
         val uiState = sut.uiState.first()
-        assertThat(uiState.isLoading).isFalse()
+        assertThat(uiState.loadingProgress).isNull()
         assertThat(uiState.errorMessage).isNull()
     }
 
@@ -71,32 +71,33 @@ class AbonentsViewModelTest {
 
         advanceUntilIdle()
         val uiState = sut.uiState.first()
-        assertThat(uiState.isLoading).isFalse()
+        assertThat(uiState.loadingProgress).isNull()
         assertThat(uiState.errorMessage).isNotNull()
     }
 
     @Test
-    fun `start search updates state to searching`() = runTest {
+    fun `empty search displays no abonents`() = runTest {
         val sut = createAbonentsViewModel()
         sut.loadExcelFile(fakeExcelUri)
 
-        sut.startSearch()
-
-        advanceUntilIdle()
-        val uiState = sut.uiState.first()
-        assertThat(uiState.isSearching).isTrue()
-    }
-
-    @Test
-    fun `start search displays empty abonents list`() = runTest {
-        val sut = createAbonentsViewModel()
-        sut.loadExcelFile(fakeExcelUri)
-
-        sut.startSearch()
+        sut.startSearch(searchQuery = "")
 
         advanceUntilIdle()
         val abonents = sut.filteredAbonents.first()
         assertThat(abonents).isEmpty()
+    }
+
+    @Test
+    fun `cancel search displays all abonents`() = runTest {
+        val sut = createAbonentsViewModel()
+        sut.loadExcelFile(fakeExcelUri)
+        sut.startSearch()
+
+        sut.cancelSearch()
+
+        advanceUntilIdle()
+        val abonents = sut.filteredAbonents.first()
+        assertThat(abonents).containsExactlyElementsIn(fakeAbonents)
     }
 
     private fun createAbonentsViewModel() = AbonentsViewModel(

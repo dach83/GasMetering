@@ -48,6 +48,10 @@ class AbonentsViewModel @Inject constructor(
     }
 
     fun startSearch(searchQuery: String = "") {
-        mutableUiState.update { it.startSearch(searchQuery) }
+        mutableUiState.update { it.search(searchQuery) }
+    }
+
+    fun cancelSearch() {
+        mutableUiState.update { it.search(null) }
     }
 }
