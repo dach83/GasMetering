@@ -3,7 +3,7 @@ package com.github.dach83.gasmetering.models
 import com.github.dach83.gasmetering.features.abonents.domain.model.Abonent
 import com.github.dach83.gasmetering.features.abonents.domain.model.MeteringDate
 
-val abonent1 = Abonent(
+val fakeAbonent1 = Abonent(
     id = "Abonent 1",
     address = "Address 1",
     meterings = mapOf(
@@ -22,7 +22,7 @@ val abonent1 = Abonent(
     )
 )
 
-val abonent2 = Abonent(
+val fakeAbonent2 = Abonent(
     id = "Abonent 2",
     address = "Address 2",
     meterings = mapOf(
@@ -41,7 +41,7 @@ val abonent2 = Abonent(
     )
 )
 
-val abonents = listOf(
-    abonent1,
-    abonent2
+val fakeAbonents = listOf(
+    fakeAbonent1,
+    fakeAbonent2
 )

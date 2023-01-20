@@ -2,6 +2,7 @@ package com.github.dach83.gasmetering.features.abonents.presentation
 
 import android.net.Uri
 import com.github.dach83.gasmetering.fake.FakeLoadAbonents
+import com.github.dach83.gasmetering.models.fakeAbonents
 import com.github.dach83.gasmetering.rule.CoroutineRule
 import com.google.common.truth.Truth.assertThat
 import io.mockk.mockk
@@ -45,6 +46,7 @@ class AbonentsViewModelTest {
 
         assertThat(sut.uiState.isLoading).isFalse()
         assertThat(sut.uiState.errorMessage).isNull()
+        assertThat(sut.uiState.abonents).containsExactlyElementsIn(fakeAbonents)
     }
 
     @Test
@@ -57,6 +59,7 @@ class AbonentsViewModelTest {
 
         assertThat(sut.uiState.isLoading).isFalse()
         assertThat(sut.uiState.errorMessage).isNotNull()
+        assertThat(sut.uiState.abonents).isEmpty()
     }
 
     private fun createAbonentsViewModel() = AbonentsViewModel(
