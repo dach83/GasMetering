@@ -7,6 +7,6 @@ interface AbonentsRepository {
 
     suspend fun loadAbonents(
         excelUri: Uri,
-        onLoading: suspend (progress: Byte, abonents: List<Abonent>) -> Unit
+        onLoading: suspend (progress: Int, abonents: List<Abonent>) -> Unit
     )
 }

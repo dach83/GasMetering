@@ -4,11 +4,11 @@ import android.net.Uri
 import com.github.dach83.gasmetering.R
 import com.github.dach83.gasmetering.fake.FakeAbonentsRepository
 import com.github.dach83.gasmetering.features.abonents.presentation.state.AbonentsUiState
-import com.github.dach83.gasmetering.models.emptySearchQuery
-import com.github.dach83.gasmetering.models.fakeAbonents
-import com.github.dach83.gasmetering.models.fakeSearchQuery
-import com.github.dach83.gasmetering.models.fakeSearchResult
 import com.github.dach83.gasmetering.rule.CoroutineRule
+import com.github.dach83.sharedtest.models.emptySearchQuery
+import com.github.dach83.sharedtest.models.fakeAbonents
+import com.github.dach83.sharedtest.models.fakeSearchQuery
+import com.github.dach83.sharedtest.models.fakeSearchResult
 import com.google.common.truth.Truth.assertThat
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi

@@ -1,4 +1,4 @@
-package com.github.dach83.gasmetering.models
+package com.github.dach83.sharedtest.models
 
 val emptySearchQuery = ""
 val fakeSearchQuery = fakeAbonent2.id
