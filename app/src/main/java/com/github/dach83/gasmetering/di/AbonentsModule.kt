@@ -1,16 +1,22 @@
 package com.github.dach83.gasmetering.di
 
-import com.github.dach83.gasmetering.features.abonents.domain.data.repository.ExcelAbonentsRepository
+import android.content.Context
+import com.github.dach83.gasmetering.features.abonents.data.repository.ExcelAbonentsRepository
 import com.github.dach83.gasmetering.features.abonents.domain.repository.AbonentsRepository
-import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class AbonentsModule {
+class AbonentsModule {
 
-    @Binds
-    abstract fun bindAbonentsRepository(impl: ExcelAbonentsRepository): AbonentsRepository
+    @Singleton
+    @Provides
+    fun provideAbonentsRepository(@ApplicationContext context: Context): AbonentsRepository {
+        return ExcelAbonentsRepository(context)
+    }
 }
