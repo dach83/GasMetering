@@ -75,6 +75,10 @@ dependencies {
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
     implementation "com.google.dagger:hilt-android:$hilt_version"
 
+    // Apache POI
+    implementation files('libs/aa-poi-3.10-min-0.1.5.jar')
+    implementation files('libs/aa-poi-ooxml-schemas-3.10-reduced-more-0.1.5.jar')
+
     // Debug
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
