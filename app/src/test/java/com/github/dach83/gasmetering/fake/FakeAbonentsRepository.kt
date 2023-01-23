@@ -2,15 +2,15 @@ package com.github.dach83.gasmetering.fake
 
 import android.net.Uri
 import com.github.dach83.gasmetering.features.abonents.domain.model.Abonent
-import com.github.dach83.gasmetering.features.abonents.domain.usecase.LoadAbonents
+import com.github.dach83.gasmetering.features.abonents.domain.repository.AbonentsRepository
 import com.github.dach83.gasmetering.models.fakeAbonents
 
-class FakeLoadAbonents : LoadAbonents {
+class FakeAbonentsRepository : AbonentsRepository {
 
     private var abonents: List<Abonent> = fakeAbonents
     private var error: Exception? = null
 
-    override suspend fun invoke(
+    override suspend fun loadAbonents(
         excelUri: Uri,
         onLoading: suspend (progress: Byte, abonents: List<Abonent>) -> Unit
     ) {
@@ -19,6 +19,6 @@ class FakeLoadAbonents : LoadAbonents {
     }
 
     fun errorMode() {
-        error = java.lang.Exception()
+        error = Exception()
     }
 }

@@ -2,7 +2,7 @@ package com.github.dach83.gasmetering.features.abonents.presentation
 
 import android.net.Uri
 import com.github.dach83.gasmetering.R
-import com.github.dach83.gasmetering.fake.FakeLoadAbonents
+import com.github.dach83.gasmetering.fake.FakeAbonentsRepository
 import com.github.dach83.gasmetering.features.abonents.presentation.state.AbonentsUiState
 import com.github.dach83.gasmetering.models.emptySearchQuery
 import com.github.dach83.gasmetering.models.fakeAbonents
@@ -25,7 +25,7 @@ class AbonentsViewModelTest {
     val coroutineRule = CoroutineRule()
 
     private val fakeExcelUri: Uri = mockk()
-    private val fakeLoadAbonents = FakeLoadAbonents()
+    private val fakeAbonentsRepository = FakeAbonentsRepository()
 
     @Test
     fun `check initial state`() = runTest {
@@ -58,7 +58,7 @@ class AbonentsViewModelTest {
     @Test
     fun `unsuccessful load excel file updates state to error`() = runTest {
         val sut = createAbonentsViewModel()
-        fakeLoadAbonents.errorMode()
+        fakeAbonentsRepository.errorMode()
 
         sut.loadExcelFile(fakeExcelUri)
 
@@ -116,6 +116,6 @@ class AbonentsViewModelTest {
     }
 
     private fun createAbonentsViewModel() = AbonentsViewModel(
-        loadAbonents = fakeLoadAbonents
+        repository = fakeAbonentsRepository
     )
 }

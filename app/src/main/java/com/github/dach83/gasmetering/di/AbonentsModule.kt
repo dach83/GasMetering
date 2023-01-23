@@ -1,7 +1,7 @@
 package com.github.dach83.gasmetering.di
 
-import com.github.dach83.gasmetering.features.abonents.domain.usecase.LoadAbonents
-import com.github.dach83.gasmetering.features.abonents.domain.usecase.LoadAbonentsImpl
+import com.github.dach83.gasmetering.features.abonents.domain.data.repository.ExcelAbonentsRepository
+import com.github.dach83.gasmetering.features.abonents.domain.repository.AbonentsRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -12,5 +12,5 @@ import dagger.hilt.components.SingletonComponent
 abstract class AbonentsModule {
 
     @Binds
-    abstract fun bindLoadAbonents(impl: LoadAbonentsImpl): LoadAbonents
+    abstract fun bindAbonentsRepository(impl: ExcelAbonentsRepository): AbonentsRepository
 }
