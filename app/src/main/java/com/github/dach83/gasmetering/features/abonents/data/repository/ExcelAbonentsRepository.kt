@@ -83,8 +83,8 @@ class ExcelAbonentsRepository @Inject constructor(
     }
 
     private fun Cell.toColumnHeader(): ColumnHeader? = when (toString().lowercase()) {
-        "abonent" -> ColumnHeader.Abonent
-        "address" -> ColumnHeader.Address
+        ABONENT_COLUMN -> ColumnHeader.Abonent
+        ADDRESS_COLUMN -> ColumnHeader.Address
         else -> toReadingsHeaderOrNull()
     }
 
@@ -102,5 +102,10 @@ class ExcelAbonentsRepository @Inject constructor(
         val year = calendar.get(Calendar.YEAR)
         val month = calendar.get(Calendar.MONTH) + 1
         return ReadingsDate(year, month)
+    }
+
+    companion object {
+        private const val ABONENT_COLUMN = "abonent"
+        private const val ADDRESS_COLUMN = "address"
     }
 }
