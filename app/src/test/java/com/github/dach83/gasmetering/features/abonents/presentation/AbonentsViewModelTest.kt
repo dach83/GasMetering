@@ -1,7 +1,9 @@
 package com.github.dach83.gasmetering.features.abonents.presentation
 
 import android.net.Uri
+import com.github.dach83.gasmetering.R
 import com.github.dach83.gasmetering.fake.FakeLoadAbonents
+import com.github.dach83.gasmetering.features.abonents.presentation.state.AbonentsUiState
 import com.github.dach83.gasmetering.models.fakeAbonents
 import com.github.dach83.gasmetering.rule.CoroutineRule
 import com.google.common.truth.Truth.assertThat
@@ -36,7 +38,7 @@ class AbonentsViewModelTest {
         sut.loadExcelFile(fakeExcelUri)
 
         val uiState = sut.uiState.first()
-        assertThat(uiState.loadingProgress).isNotNull()
+        assertThat(uiState).isEqualTo(AbonentsUiState.Loading(progress = 0))
     }
 
     @Test
@@ -47,8 +49,19 @@ class AbonentsViewModelTest {
 
         advanceUntilIdle()
         val uiState = sut.uiState.first()
-        assertThat(uiState.loadingProgress).isNull()
-        assertThat(uiState.errorMessage).isNull()
+        assertThat(uiState).isEqualTo(AbonentsUiState.Loaded)
+    }
+
+    @Test
+    fun `unsuccessful load excel file updates state to error`() = runTest {
+        val sut = createAbonentsViewModel()
+        fakeLoadAbonents.errorMode()
+
+        sut.loadExcelFile(fakeExcelUri)
+
+        advanceUntilIdle()
+        val uiState = sut.uiState.first()
+        assertThat(uiState).isEqualTo(AbonentsUiState.Error(R.string.error_message))
     }
 
     @Test
@@ -63,20 +76,7 @@ class AbonentsViewModelTest {
     }
 
     @Test
-    fun `unsuccessful load excel file updates state to error`() = runTest {
-        val sut = createAbonentsViewModel()
-        fakeLoadAbonents.errorMode()
-
-        sut.loadExcelFile(fakeExcelUri)
-
-        advanceUntilIdle()
-        val uiState = sut.uiState.first()
-        assertThat(uiState.loadingProgress).isNull()
-        assertThat(uiState.errorMessage).isNotNull()
-    }
-
-    @Test
-    fun `empty search displays no abonents`() = runTest {
+    fun `start empty search displays no abonents`() = runTest {
         val sut = createAbonentsViewModel()
         sut.loadExcelFile(fakeExcelUri)
 

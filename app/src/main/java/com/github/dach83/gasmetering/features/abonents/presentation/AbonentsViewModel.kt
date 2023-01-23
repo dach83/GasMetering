@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.github.dach83.gasmetering.R
 import com.github.dach83.gasmetering.features.abonents.domain.model.Abonent
 import com.github.dach83.gasmetering.features.abonents.domain.usecase.LoadAbonents
+import com.github.dach83.gasmetering.features.abonents.presentation.state.AbonentsFilter
+import com.github.dach83.gasmetering.features.abonents.presentation.state.AbonentsUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
@@ -17,41 +19,44 @@ class AbonentsViewModel @Inject constructor(
     private val loadAbonents: LoadAbonents
 ) : ViewModel() {
 
-    private val mutableUiState = MutableStateFlow(AbonentsUiState.INITIAL)
+    private val mutableUiState = MutableStateFlow<AbonentsUiState>(AbonentsUiState.INITIAL)
     val uiState = mutableUiState.asStateFlow()
 
-    private val allAbonents = MutableStateFlow<List<Abonent>>(emptyList())
+    private val mutableFilter = MutableStateFlow(AbonentsFilter.INITIAL)
+    val filter = mutableFilter.asStateFlow()
+
+    private val abonents = MutableStateFlow<List<Abonent>>(emptyList())
     val filteredAbonents: Flow<List<Abonent>> =
-        combine(allAbonents, uiState) { allAbonents, uiState ->
-            when (uiState.searchQuery) {
+        combine(abonents, filter) { abonents, filter ->
+            when (filter.searchQuery) {
                 "" -> emptyList()
-                else -> allAbonents
+                else -> abonents
             }
         }
 
     private var loadingJob: Job? = null
 
     fun loadExcelFile(excelUri: Uri) {
-        mutableUiState.update { it.loading() }
+        mutableUiState.value = AbonentsUiState.Loading(progress = 0)
         loadingJob?.cancel()
         loadingJob = viewModelScope.launch {
             try {
                 loadAbonents(excelUri) { progress, abonents ->
-                    mutableUiState.update { it.loading(progress) }
-                    allAbonents.emit(abonents)
+                    mutableUiState.value = AbonentsUiState.Loading(progress)
+                    this@AbonentsViewModel.abonents.emit(abonents)
                 }
-                mutableUiState.update { it.loaded() }
+                mutableUiState.value = AbonentsUiState.Loaded
             } catch (cause: Exception) {
-                mutableUiState.update { it.error(R.string.error_message) }
+                mutableUiState.value = AbonentsUiState.Error(R.string.error_message)
             }
         }
     }
 
     fun startSearch(searchQuery: String = "") {
-        mutableUiState.update { it.search(searchQuery) }
+        mutableFilter.update { it.copy(searchQuery = searchQuery) }
     }
 
     fun cancelSearch() {
-        mutableUiState.update { it.search(null) }
+        mutableFilter.update { it.copy(searchQuery = null) }
     }
 }
