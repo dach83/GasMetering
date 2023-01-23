@@ -4,7 +4,10 @@ import android.net.Uri
 import com.github.dach83.gasmetering.R
 import com.github.dach83.gasmetering.fake.FakeLoadAbonents
 import com.github.dach83.gasmetering.features.abonents.presentation.state.AbonentsUiState
+import com.github.dach83.gasmetering.models.emptySearchQuery
 import com.github.dach83.gasmetering.models.fakeAbonents
+import com.github.dach83.gasmetering.models.fakeSearchQuery
+import com.github.dach83.gasmetering.models.fakeSearchResult
 import com.github.dach83.gasmetering.rule.CoroutineRule
 import com.google.common.truth.Truth.assertThat
 import io.mockk.mockk
@@ -76,15 +79,27 @@ class AbonentsViewModelTest {
     }
 
     @Test
-    fun `start empty search displays no abonents`() = runTest {
+    fun `start search displays no abonents`() = runTest {
         val sut = createAbonentsViewModel()
         sut.loadExcelFile(fakeExcelUri)
 
-        sut.startSearch(searchQuery = "")
+        sut.startSearch(searchQuery = emptySearchQuery)
 
         advanceUntilIdle()
         val abonents = sut.filteredAbonents.first()
         assertThat(abonents).isEmpty()
+    }
+
+    @Test
+    fun `correct search displays correct abonents`() = runTest {
+        val sut = createAbonentsViewModel()
+        sut.loadExcelFile(fakeExcelUri)
+
+        sut.startSearch(searchQuery = fakeSearchQuery)
+
+        advanceUntilIdle()
+        val abonents = sut.filteredAbonents.first()
+        assertThat(abonents).containsExactlyElementsIn(fakeSearchResult)
     }
 
     @Test

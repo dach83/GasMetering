@@ -29,8 +29,9 @@ class AbonentsViewModel @Inject constructor(
     val filteredAbonents: Flow<List<Abonent>> =
         combine(abonents, filter) { abonents, filter ->
             when (filter.searchQuery) {
+                null -> abonents
                 "" -> emptyList()
-                else -> abonents
+                else -> abonents.filter { it.contains(filter.searchQuery) }
             }
         }
 
