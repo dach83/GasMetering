@@ -4,6 +4,8 @@ import androidx.annotation.StringRes
 
 sealed class AbonentsUiState {
 
+    object NoExcelUri : AbonentsUiState()
+
     data class Loading(val progress: Byte) : AbonentsUiState()
 
     object Loaded : AbonentsUiState()
@@ -11,6 +13,6 @@ sealed class AbonentsUiState {
     data class Error(@StringRes val message: Int) : AbonentsUiState()
 
     companion object {
-        val INITIAL = Loaded
+        val INITIAL = NoExcelUri
     }
 }
