@@ -1,11 +1,11 @@
 package com.github.dach83.gasmetering.features.abonents.domain.model
 
-data class MeteringDate(
+data class ReadingsDate(
     val year: Int,
     val month: Int
 ) {
 
-    operator fun compareTo(other: MeteringDate): Int {
+    operator fun compareTo(other: ReadingsDate): Int {
         return numberOfMonths() - other.numberOfMonths()
     }
 

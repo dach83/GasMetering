@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import com.github.dach83.gasmetering.features.abonents.data.dispatchers.CoroutineDispatchers
 import com.github.dach83.gasmetering.features.abonents.domain.model.Abonent
-import com.github.dach83.gasmetering.features.abonents.domain.model.MeteringDate
+import com.github.dach83.gasmetering.features.abonents.domain.model.ReadingsDate
 import com.github.dach83.gasmetering.features.abonents.domain.repository.AbonentsRepository
 import kotlinx.coroutines.withContext
 import org.apache.poi.ss.usermodel.Cell
@@ -55,13 +55,13 @@ class ExcelAbonentsRepository @Inject constructor(
     private fun parseAbonent(row: Row): Abonent {
         var id = ""
         var address = ""
-        val meterings = mutableMapOf<MeteringDate, Double>()
+        val meterings = mutableMapOf<ReadingsDate, Double>()
         row.forEachIndexed { columnIndex, cell ->
             headers.getOrNull(columnIndex)?.let { header ->
                 when (header) {
                     ColumnHeader.Abonent -> id = cell.toText()
                     ColumnHeader.Address -> address = cell.toText()
-                    is ColumnHeader.Metering -> meterings[header.date] = cell.toDouble()
+                    is ColumnHeader.Readings -> meterings[header.date] = cell.toDouble()
                 }
             }
         }
@@ -85,22 +85,22 @@ class ExcelAbonentsRepository @Inject constructor(
     private fun Cell.toColumnHeader(): ColumnHeader? = when (toString().lowercase()) {
         "abonent" -> ColumnHeader.Abonent
         "address" -> ColumnHeader.Address
-        else -> toMeteringHeaderOrNull()
+        else -> toReadingsHeaderOrNull()
     }
 
-    private fun Cell.toMeteringHeaderOrNull(): ColumnHeader.Metering? =
+    private fun Cell.toReadingsHeaderOrNull(): ColumnHeader.Readings? =
         if (cellType == Cell.CELL_TYPE_NUMERIC) {
-            val meteringDate = toMeteringDate()
-            ColumnHeader.Metering(meteringDate)
+            val meteringDate = toReadingsDate()
+            ColumnHeader.Readings(meteringDate)
         } else {
             null
         }
 
-    private fun Cell.toMeteringDate(): MeteringDate {
+    private fun Cell.toReadingsDate(): ReadingsDate {
         val calendar = Calendar.getInstance()
         calendar.time = dateCellValue
         val year = calendar.get(Calendar.YEAR)
         val month = calendar.get(Calendar.MONTH) + 1
-        return MeteringDate(year, month)
+        return ReadingsDate(year, month)
     }
 }
