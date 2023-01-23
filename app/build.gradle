@@ -75,18 +75,25 @@ dependencies {
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
     implementation "com.google.dagger:hilt-android:$hilt_version"
 
+    // Apache POI
+    implementation files('libs/aa-poi-3.10-min-0.1.5.jar')
+    implementation files('libs/aa-poi-ooxml-schemas-3.10-reduced-more-0.1.5.jar')
+
     // Debug
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
 
     // Test
-    testImplementation "junit:junit:$junit_version"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_test_version"
     testImplementation "com.google.truth:truth:$google_truth_version"
     testImplementation "io.mockk:mockk-android:$mockk_version"
-    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_test_version"
+    testImplementation "junit:junit:$junit_version"
+    testImplementation project(":sharedTest")
 
     // AndroidTest
-    androidTestImplementation "androidx.test.ext:junit:$junit_ext_version"
     androidTestImplementation "androidx.test.espresso:espresso-core:$espresso_version"
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+    androidTestImplementation "com.google.truth:truth:$google_truth_version"
+    androidTestImplementation "androidx.test.ext:junit:$junit_ext_version"
+    androidTestImplementation project(":sharedTest")
 }
