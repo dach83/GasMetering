@@ -1,5 +1,5 @@
 # GasMetering
-Android приложение для занесения показаний счëтчиков газа.
+Android приложение для учёта показаний счëтчиков газа.
 
 ## Описание задачи
 Страница заказа на [freelance](https://www.fl.ru/projects/5064452/prilojenie-dlya-android.html).
