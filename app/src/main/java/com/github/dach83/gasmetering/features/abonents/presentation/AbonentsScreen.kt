@@ -1,5 +1,6 @@
 package com.github.dach83.gasmetering.features.abonents.presentation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -48,7 +49,7 @@ fun AbonentsScreen(
     ) {
         SearchField(
             enabled = filter.searchEnabled,
-            query = filter.searchQuery,
+            searchQuery = filter.searchQuery,
             onStartSearch = viewModel::startSearch,
             onCancelSearch = viewModel::cancelSearch,
             onFolderClick = {}
@@ -59,26 +60,31 @@ fun AbonentsScreen(
 @Composable
 fun SearchField(
     enabled: Boolean,
-    query: String,
+    searchQuery: String,
     onStartSearch: (String) -> Unit,
     onCancelSearch: () -> Unit,
     onFolderClick: () -> Unit,
-    shape: Shape = MaterialTheme.shapes.extraLarge,
     surface: Color = MaterialTheme.colorScheme.surface,
     surfaceVariant: Color = MaterialTheme.colorScheme.surfaceVariant,
     onSurfaceVariant: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    textStyle: TextStyle = MaterialTheme.typography.bodyLarge.copy(color = onSurfaceVariant)
+    textStyle: TextStyle = MaterialTheme.typography.bodyLarge.copy(color = onSurfaceVariant),
+    shape: Shape = MaterialTheme.shapes.extraLarge
 ) {
+    val backgroundColor = if (enabled) surfaceVariant else surface
+    val leadingIcon = if (enabled) Icons.Default.ArrowBack else Icons.Default.Search
     val interactionSource = remember { MutableInteractionSource() }
     val focusRequester by remember { mutableStateOf(FocusRequester()) }
-    val searchModeColor = if (enabled) surfaceVariant else surface
     var textField by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
     }
-    textField = textField.copy(text = query)
+    textField = textField.copy(text = searchQuery)
+
+    BackHandler(enabled = enabled) {
+        onCancelSearch() // when the "Back" button is pressed, the search mode ends first
+    }
 
     LaunchedEffect(key1 = enabled) {
-        focusRequester.requestFocus()
+        focusRequester.requestFocus() // when the search mode is started, the edit field gets focus
     }
 
     Row(
@@ -86,7 +92,7 @@ fun SearchField(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .background(searchModeColor)
+            .background(backgroundColor)
             .padding(16.dp)
             .clip(shape = shape)
             .background(color = surfaceVariant)
@@ -99,16 +105,17 @@ fun SearchField(
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Icon(
-            imageVector = if (enabled) {
-                Icons.Default.ArrowBack
-            } else {
-                Icons.Default.Search
-            },
+            imageVector = leadingIcon,
             contentDescription = "",
             tint = onSurfaceVariant,
             modifier = Modifier
                 .clip(CircleShape)
-                .clickable(enabled = enabled, onClick = onCancelSearch)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    enabled = enabled,
+                    onClick = onCancelSearch
+                )
                 .padding(4.dp)
         )
         BasicTextField(
@@ -137,7 +144,7 @@ fun SearchField(
                 }
             }
         )
-        if (!enabled) {
+        if (enabled.not()) {
             Icon(
                 imageVector = Icons.Default.FolderOpen,
                 contentDescription = "Open document",
