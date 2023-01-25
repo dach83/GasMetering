@@ -30,10 +30,12 @@ class AbonentsViewModel @Inject constructor(
     private val abonents = MutableStateFlow<List<Abonent>>(emptyList())
     val filteredAbonents: Flow<List<Abonent>> =
         combine(abonents, filter) { abonents, filter ->
-            when (filter.searchQuery) {
-                null -> abonents
-                "" -> emptyList()
-                else -> abonents.filter { abonent ->
+            if (!filter.searchEnabled) {
+                abonents
+            } else if (filter.searchQuery.isEmpty()) {
+                emptyList()
+            } else {
+                abonents.filter { abonent ->
                     abonent.contains(filter.searchQuery)
                 }
             }
@@ -56,10 +58,20 @@ class AbonentsViewModel @Inject constructor(
     }
 
     fun startSearch(searchQuery: String = "") {
-        mutableFilter.update { it.copy(searchQuery = searchQuery) }
+        mutableFilter.update {
+            it.copy(
+                searchEnabled = true,
+                searchQuery = searchQuery
+            )
+        }
     }
 
     fun cancelSearch() {
-        mutableFilter.update { it.copy(searchQuery = null) }
+        mutableFilter.update {
+            it.copy(
+                searchEnabled = false,
+                searchQuery = ""
+            )
+        }
     }
 }

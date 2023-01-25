@@ -1,6 +1,6 @@
 package com.github.dach83.gasmetering.features.abonents.data.repository
 
-import com.github.dach83.gasmetering.features.abonents.domain.model.MeteringDate
+import com.github.dach83.gasmetering.features.abonents.domain.model.ReadingsDate
 
 sealed class ColumnHeader() {
 
@@ -8,5 +8,5 @@ sealed class ColumnHeader() {
 
     object Address : ColumnHeader()
 
-    class Metering(val date: MeteringDate) : ColumnHeader()
+    class Readings(val date: ReadingsDate) : ColumnHeader()
 }
