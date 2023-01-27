@@ -55,7 +55,7 @@ class ExcelAbonentsRepository @Inject constructor(
     private fun parseAbonent(row: Row): Abonent {
         var id = ""
         var address = ""
-        val meterings = mutableMapOf<ReadingsDate, Double>()
+        val meterings = TreeMap<ReadingsDate, Double>()
         row.forEachIndexed { columnIndex, cell ->
             headers.getOrNull(columnIndex)?.let { header ->
                 when (header) {

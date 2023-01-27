@@ -41,7 +41,8 @@ class AbonentsViewModel @Inject constructor(
             }
         }
 
-    fun loadExcelFile(excelUri: Uri) {
+    fun loadExcelFile(excelUri: Uri?) {
+        if (excelUri == null) return
         mutableUiState.value = AbonentsUiState.Loading(progress = 0)
         loadingJob?.cancel()
         loadingJob = viewModelScope.launch {

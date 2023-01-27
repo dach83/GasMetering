@@ -3,9 +3,9 @@ package com.github.dach83.gasmetering.features.abonents.domain.model
 data class ReadingsDate(
     val year: Int,
     val month: Int
-) {
+) : Comparable<ReadingsDate> {
 
-    operator fun compareTo(other: ReadingsDate): Int {
+    override operator fun compareTo(other: ReadingsDate): Int {
         return numberOfMonths() - other.numberOfMonths()
     }
 
