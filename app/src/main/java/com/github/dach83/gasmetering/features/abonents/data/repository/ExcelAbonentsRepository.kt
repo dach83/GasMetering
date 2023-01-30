@@ -9,7 +9,6 @@ import com.github.dach83.gasmetering.features.abonents.domain.repository.Abonent
 import kotlinx.coroutines.withContext
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.Row
-import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import java.util.*
 import javax.inject.Inject
@@ -24,23 +23,25 @@ class ExcelAbonentsRepository @Inject constructor(
 
     override suspend fun loadAbonents(
         excelUri: Uri,
-        onLoading: suspend (progress: Int, abonents: List<Abonent>) -> Unit
+        onLoading: suspend (progress: Float, abonents: List<Abonent>) -> Unit
     ) {
         withContext(dispatchers.io) {
             context.contentResolver.openInputStream(excelUri)?.use { inputStream ->
                 abonents.clear()
                 val workbook = WorkbookFactory.create(inputStream)
                 val sheet = workbook?.getSheetAt(0)
-                val totalRows = sheet?.indexOfLastNotEmptyRow() ?: 0
+                val totalRows = sheet?.lastRowNum ?: 0
                 sheet?.forEachIndexed { rowIndex, row ->
                     if (rowIndex == 0) {
                         headers = parseHeaders(row)
                     } else {
                         val abonent = parseAbonent(row)
                         if (abonent.id.isNotEmpty()) {
-                            val progress = 100 * (rowIndex + 1) / (totalRows + 1)
+                            val progress = (rowIndex + 1) / (totalRows.toFloat() + 1)
                             abonents.add(abonent)
-                            onLoading(progress, abonents.toList())
+                            withContext(dispatchers.main) {
+                                onLoading(progress, abonents.toList())
+                            }
                         }
                     }
                 }
@@ -61,15 +62,14 @@ class ExcelAbonentsRepository @Inject constructor(
                 when (header) {
                     ColumnHeader.Abonent -> id = cell.toText()
                     ColumnHeader.Address -> address = cell.toText()
-                    is ColumnHeader.Readings -> meterings[header.date] = cell.toDouble()
+                    is ColumnHeader.Readings ->
+                        if (cell.toDouble() > 0) {
+                            meterings[header.date] = cell.toDouble()
+                        }
                 }
             }
         }
         return Abonent(id, address, meterings)
-    }
-
-    private fun Sheet.indexOfLastNotEmptyRow(): Int = indexOfLast { row ->
-        row.getCell(0).toText().isNotEmpty()
     }
 
     private fun Cell.toText(): String {
@@ -90,19 +90,11 @@ class ExcelAbonentsRepository @Inject constructor(
 
     private fun Cell.toReadingsHeaderOrNull(): ColumnHeader.Readings? =
         if (cellType == Cell.CELL_TYPE_NUMERIC) {
-            val meteringDate = toReadingsDate()
-            ColumnHeader.Readings(meteringDate)
+            val readingDate = ReadingsDate(dateCellValue)
+            ColumnHeader.Readings(readingDate)
         } else {
             null
         }
-
-    private fun Cell.toReadingsDate(): ReadingsDate {
-        val calendar = Calendar.getInstance()
-        calendar.time = dateCellValue
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH) + 1
-        return ReadingsDate(year, month)
-    }
 
     companion object {
         private const val ABONENT_COLUMN = "abonent"

@@ -10,6 +10,7 @@ import com.github.dach83.gasmetering.features.abonents.presentation.state.Abonen
 import com.github.dach83.gasmetering.features.abonents.presentation.state.AbonentsUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -35,6 +36,7 @@ class AbonentsViewModel @Inject constructor(
             } else if (filter.searchQuery.isEmpty()) {
                 emptyList()
             } else {
+                delay(300)
                 abonents.filter { abonent ->
                     abonent.contains(filter.searchQuery)
                 }
@@ -43,7 +45,7 @@ class AbonentsViewModel @Inject constructor(
 
     fun loadExcelFile(excelUri: Uri?) {
         if (excelUri == null) return
-        mutableUiState.value = AbonentsUiState.Loading(progress = 0)
+        mutableUiState.value = AbonentsUiState.Loading(progress = 0f)
         loadingJob?.cancel()
         loadingJob = viewModelScope.launch {
             try {
