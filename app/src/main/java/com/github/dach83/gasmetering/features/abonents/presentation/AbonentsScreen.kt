@@ -1,8 +1,12 @@
 package com.github.dach83.gasmetering.features.abonents.presentation
 
+import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -33,6 +37,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
@@ -64,15 +69,11 @@ fun AbonentsScreen(
     viewModel: AbonentsViewModel = hiltViewModel(),
     navigator: DestinationsNavigator
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState = viewModel.uiState
     val filter by viewModel.filter.collectAsState()
     val abonents by viewModel.filteredAbonents.collectAsState(initial = emptyList())
 
     // open excel document launcher
-    val excelDocMime = arrayOf(
-        "application/vnd.ms-excel",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
     val openDocLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = viewModel::loadExcelFile
@@ -110,26 +111,82 @@ fun AbonentsScreen(
             .fillMaxSize()
             .nestedScroll(nestedScrollConnection)
     ) {
-        AbonentList(
-            abonents = abonents,
-            onAbonentClick = {
-                navigator.navigate(TakeReadingsScreenDestination())
-            },
-            toolbarHeight = toolbarHeight
-        )
+        when (uiState) {
+            AbonentsUiState.NoExcelUri ->
+                IconAndMessage(
+                    iconId = R.drawable.openfolder,
+                    textId = R.string.open_exel_doc,
+                    onClick = openDocLauncher::openExcelDoc
+                )
+
+            is AbonentsUiState.Error ->
+                IconAndMessage(
+                    iconId = R.drawable.warning,
+                    textId = uiState.message,
+                    onClick = openDocLauncher::openExcelDoc
+                )
+
+            else ->
+                AbonentList(
+                    abonents = abonents,
+                    onAbonentClick = {
+                        navigator.navigate(TakeReadingsScreenDestination())
+                    },
+                    toolbarHeight = toolbarHeight
+                )
+        }
+
         SearchToolbar(
             enabled = filter.searchEnabled,
             searchQuery = filter.searchQuery,
             onStartSearch = viewModel::startSearch,
             onCancelSearch = viewModel::cancelSearch,
-            onFolderClick = { openDocLauncher.launch(excelDocMime) },
+            onFolderClick = { openDocLauncher.openExcelDoc() },
             modifier = Modifier
                 .height(toolbarHeight)
                 .offset { IntOffset(x = 0, y = toolbarOffsetHeightPx.roundToInt()) }
         )
         if (uiState is AbonentsUiState.Loading) {
-            LinearProgressIndicator(
-                progress = (uiState as AbonentsUiState.Loading).progress
+            LinearProgressIndicator(progress = uiState.progress)
+        }
+    }
+}
+
+private fun ManagedActivityResultLauncher<Array<String>, Uri?>.openExcelDoc() {
+    val excelDocMime = arrayOf(
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    launch(excelDocMime)
+}
+
+@Composable
+fun IconAndMessage(
+    @DrawableRes iconId: Int,
+    @StringRes textId: Int,
+    onClick: () -> Unit = {}
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .clip(CircleShape)
+                .clickable { onClick() }
+                .padding(56.dp)
+        ) {
+            Image(
+                painter = painterResource(id = iconId),
+                contentDescription = "",
+                modifier = Modifier.size(100.dp)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = stringResource(id = textId),
+                style = MaterialTheme.typography.titleMedium
             )
         }
     }

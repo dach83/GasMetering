@@ -1,6 +1,9 @@
 package com.github.dach83.gasmetering.features.abonents.presentation
 
 import android.net.Uri
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.dach83.gasmetering.R
@@ -22,8 +25,8 @@ class AbonentsViewModel @Inject constructor(
 
     private var loadingJob: Job? = null
 
-    private val mutableUiState = MutableStateFlow<AbonentsUiState>(AbonentsUiState.INITIAL)
-    val uiState = mutableUiState.asStateFlow()
+    var uiState: AbonentsUiState by mutableStateOf(AbonentsUiState.INITIAL)
+        private set
 
     private val mutableFilter = MutableStateFlow(AbonentsFilter.INITIAL)
     val filter = mutableFilter.asStateFlow()
@@ -45,17 +48,17 @@ class AbonentsViewModel @Inject constructor(
 
     fun loadExcelFile(excelUri: Uri?) {
         if (excelUri == null) return
-        mutableUiState.value = AbonentsUiState.Loading(progress = 0f)
+        uiState = AbonentsUiState.Loading(progress = 0f)
         loadingJob?.cancel()
         loadingJob = viewModelScope.launch {
             try {
                 repository.loadAbonents(excelUri) { progress, abonents ->
-                    mutableUiState.value = AbonentsUiState.Loading(progress)
+                    uiState = AbonentsUiState.Loading(progress)
                     this@AbonentsViewModel.abonents.emit(abonents)
                 }
-                mutableUiState.value = AbonentsUiState.Loaded
+                uiState = AbonentsUiState.Loaded
             } catch (cause: Exception) {
-                mutableUiState.value = AbonentsUiState.Error(R.string.error_message)
+                uiState = AbonentsUiState.Error(R.string.error_message)
             }
         }
     }
