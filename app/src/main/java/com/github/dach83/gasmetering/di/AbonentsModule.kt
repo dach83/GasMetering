@@ -19,6 +19,7 @@ class AbonentsModule {
     @Singleton
     @Provides
     fun provideCoroutineDispatchers(): CoroutineDispatchers = CoroutineDispatchers(
+        main = Dispatchers.Main,
         io = Dispatchers.IO
     )
 

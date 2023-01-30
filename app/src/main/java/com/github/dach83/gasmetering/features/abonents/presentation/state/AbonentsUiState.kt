@@ -6,7 +6,7 @@ sealed class AbonentsUiState {
 
     object NoExcelUri : AbonentsUiState()
 
-    data class Loading(val progress: Int) : AbonentsUiState()
+    data class Loading(val progress: Float) : AbonentsUiState()
 
     object Loaded : AbonentsUiState()
 
