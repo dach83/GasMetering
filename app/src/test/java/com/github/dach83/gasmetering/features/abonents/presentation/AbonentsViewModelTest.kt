@@ -3,6 +3,7 @@ package com.github.dach83.gasmetering.features.abonents.presentation
 import android.net.Uri
 import com.github.dach83.gasmetering.R
 import com.github.dach83.gasmetering.fake.FakeAbonentsRepository
+import com.github.dach83.gasmetering.fake.FakeExcelUriRepository
 import com.github.dach83.gasmetering.features.abonents.presentation.state.AbonentsUiState
 import com.github.dach83.gasmetering.rule.CoroutineRule
 import com.github.dach83.sharedtest.models.emptySearchQuery
@@ -26,11 +27,12 @@ class AbonentsViewModelTest {
 
     private val fakeExcelUri: Uri = mockk()
     private val fakeAbonentsRepository = FakeAbonentsRepository()
+    private val fakeExcelUriRepository = FakeExcelUriRepository()
 
     @Test
     fun `check initial state`() = runTest {
         val sut = createAbonentsViewModel()
-        val uiState = sut.uiState.first()
+        val uiState = sut.uiState
         assertThat(uiState).isEqualTo(AbonentsUiState.INITIAL)
     }
 
@@ -40,8 +42,8 @@ class AbonentsViewModelTest {
 
         sut.loadExcelFile(fakeExcelUri)
 
-        val uiState = sut.uiState.first()
-        assertThat(uiState).isEqualTo(AbonentsUiState.Loading(progress = 0))
+        val uiState = sut.uiState
+        assertThat(uiState).isEqualTo(AbonentsUiState.Loading(progress = 0f))
     }
 
     @Test
@@ -51,7 +53,7 @@ class AbonentsViewModelTest {
         sut.loadExcelFile(fakeExcelUri)
 
         advanceUntilIdle()
-        val uiState = sut.uiState.first()
+        val uiState = sut.uiState
         assertThat(uiState).isEqualTo(AbonentsUiState.Loaded)
     }
 
@@ -63,7 +65,7 @@ class AbonentsViewModelTest {
         sut.loadExcelFile(fakeExcelUri)
 
         advanceUntilIdle()
-        val uiState = sut.uiState.first()
+        val uiState = sut.uiState
         assertThat(uiState).isEqualTo(AbonentsUiState.Error(R.string.error_message))
     }
 
@@ -116,6 +118,7 @@ class AbonentsViewModelTest {
     }
 
     private fun createAbonentsViewModel() = AbonentsViewModel(
-        repository = fakeAbonentsRepository
+        abonentsRepository = fakeAbonentsRepository,
+        excelUriRepository = fakeExcelUriRepository
     )
 }

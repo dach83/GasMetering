@@ -74,12 +74,12 @@ fun AbonentsScreen(
     val abonents by viewModel.filteredAbonents.collectAsState(initial = emptyList())
 
     // open excel document launcher
-    val openDocLauncher = rememberLauncherForActivityResult(
+    val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = viewModel::loadExcelFile
     )
 
-    // collapsing toolbar calculation
+    // collapsing toolbar height calculation
     val toolbarHeight = 64.dp
     val toolbarHeightPx = with(LocalDensity.current) { toolbarHeight.roundToPx().toFloat() }
     var toolbarOffsetHeightPx by remember { mutableStateOf(0f) }
@@ -111,44 +111,67 @@ fun AbonentsScreen(
             .fillMaxSize()
             .nestedScroll(nestedScrollConnection)
     ) {
-        when (uiState) {
-            AbonentsUiState.NoExcelUri ->
-                IconAndMessage(
-                    iconId = R.drawable.openfolder,
-                    textId = R.string.open_exel_doc,
-                    onClick = openDocLauncher::openExcelDoc
-                )
-
-            is AbonentsUiState.Error ->
-                IconAndMessage(
-                    iconId = R.drawable.warning,
-                    textId = uiState.message,
-                    onClick = openDocLauncher::openExcelDoc
-                )
-
-            else ->
-                AbonentList(
-                    abonents = abonents,
-                    onAbonentClick = {
-                        navigator.navigate(TakeReadingsScreenDestination())
-                    },
-                    toolbarHeight = toolbarHeight
-                )
-        }
-
+        AbonentsScreenBody(
+            uiState = uiState,
+            abonents = abonents,
+            toolbarHeight = toolbarHeight,
+            onOpenDocClick = launcher::openExcelDoc,
+            onAbonentClick = {
+                navigator.navigate(TakeReadingsScreenDestination())
+            }
+        )
         SearchToolbar(
             enabled = filter.searchEnabled,
             searchQuery = filter.searchQuery,
             onStartSearch = viewModel::startSearch,
             onCancelSearch = viewModel::cancelSearch,
-            onFolderClick = { openDocLauncher.openExcelDoc() },
+            onOpenDocClick = launcher::openExcelDoc,
             modifier = Modifier
                 .height(toolbarHeight)
                 .offset { IntOffset(x = 0, y = toolbarOffsetHeightPx.roundToInt()) }
         )
-        if (uiState is AbonentsUiState.Loading) {
-            LinearProgressIndicator(progress = uiState.progress)
-        }
+        LoadingProgressIndicator(
+            uiState = uiState
+        )
+    }
+}
+
+@Composable
+private fun LoadingProgressIndicator(uiState: AbonentsUiState) {
+    if (uiState is AbonentsUiState.Loading) {
+        LinearProgressIndicator(progress = uiState.progress)
+    }
+}
+
+@Composable
+private fun AbonentsScreenBody(
+    uiState: AbonentsUiState,
+    abonents: List<Abonent>,
+    toolbarHeight: Dp,
+    onOpenDocClick: () -> Unit,
+    onAbonentClick: (Abonent) -> Unit
+) {
+    when (uiState) {
+        AbonentsUiState.NoExcelUri ->
+            IconAndMessage(
+                iconId = R.drawable.openfolder,
+                textId = R.string.open_exel_doc,
+                onClick = onOpenDocClick
+            )
+
+        is AbonentsUiState.Error ->
+            IconAndMessage(
+                iconId = R.drawable.warning,
+                textId = uiState.message,
+                onClick = onOpenDocClick
+            )
+
+        else ->
+            AbonentList(
+                abonents = abonents,
+                onAbonentClick = onAbonentClick,
+                toolbarHeight = toolbarHeight
+            )
     }
 }
 
@@ -354,7 +377,7 @@ fun SearchToolbar(
     searchQuery: String,
     onStartSearch: (String) -> Unit,
     onCancelSearch: () -> Unit,
-    onFolderClick: () -> Unit,
+    onOpenDocClick: () -> Unit,
     modifier: Modifier = Modifier,
     surface: Color = MaterialTheme.colorScheme.surface,
     surfaceVariant: Color = MaterialTheme.colorScheme.surfaceVariant,
@@ -451,7 +474,7 @@ fun SearchToolbar(
                 modifier = Modifier
                     .padding(start = 12.dp, end = 12.dp)
                     .clip(CircleShape)
-                    .clickable(onClick = onFolderClick)
+                    .clickable(onClick = onOpenDocClick)
                     .padding(8.dp)
                     .size(24.dp)
 

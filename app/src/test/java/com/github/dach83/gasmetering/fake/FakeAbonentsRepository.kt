@@ -12,10 +12,10 @@ class FakeAbonentsRepository : AbonentsRepository {
 
     override suspend fun loadAbonents(
         excelUri: Uri,
-        onLoading: suspend (progress: Int, abonents: List<Abonent>) -> Unit
+        onLoading: suspend (progress: Float, abonents: List<Abonent>) -> Unit
     ) {
         error?.let { throw it }
-        onLoading(100, abonents)
+        onLoading(1f, abonents)
     }
 
     fun errorMode() {

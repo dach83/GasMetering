@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.github.dach83.gasmetering.R
 import com.github.dach83.gasmetering.features.abonents.domain.model.Abonent
 import com.github.dach83.gasmetering.features.abonents.domain.repository.AbonentsRepository
+import com.github.dach83.gasmetering.features.abonents.domain.repository.ExcelUriRepository
 import com.github.dach83.gasmetering.features.abonents.presentation.state.AbonentsFilter
 import com.github.dach83.gasmetering.features.abonents.presentation.state.AbonentsUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +21,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AbonentsViewModel @Inject constructor(
-    private val repository: AbonentsRepository
+    private val abonentsRepository: AbonentsRepository,
+    private val excelUriRepository: ExcelUriRepository
 ) : ViewModel() {
 
     private var loadingJob: Job? = null
@@ -46,13 +48,20 @@ class AbonentsViewModel @Inject constructor(
             }
         }
 
+    init {
+        val latestLoadedUri = excelUriRepository.loadLatestExcelUri()
+        loadExcelFile(latestLoadedUri)
+    }
+
     fun loadExcelFile(excelUri: Uri?) {
         if (excelUri == null) return
+        excelUriRepository.saveLatestExcelUri(excelUri)
+
         uiState = AbonentsUiState.Loading(progress = 0f)
         loadingJob?.cancel()
         loadingJob = viewModelScope.launch {
             try {
-                repository.loadAbonents(excelUri) { progress, abonents ->
+                abonentsRepository.loadAbonents(excelUri) { progress, abonents ->
                     uiState = AbonentsUiState.Loading(progress)
                     this@AbonentsViewModel.abonents.emit(abonents)
                 }
