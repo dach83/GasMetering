@@ -53,6 +53,7 @@ import com.github.dach83.gasmetering.features.abonents.domain.model.Readings
 import com.github.dach83.gasmetering.features.abonents.domain.model.ReadingsBarChart
 import com.github.dach83.gasmetering.features.abonents.domain.model.ReadingsDate
 import com.github.dach83.gasmetering.features.abonents.presentation.state.AbonentsUiState
+import com.github.dach83.gasmetering.features.destinations.SortOrderBottomSheetDestination
 import com.github.dach83.gasmetering.features.destinations.TakeReadingsScreenDestination
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
@@ -118,6 +119,9 @@ fun AbonentsScreen(
             onOpenDocClick = launcher::openExcelDoc,
             onAbonentClick = {
                 navigator.navigate(TakeReadingsScreenDestination())
+            },
+            onSortClick = {
+                navigator.navigate(SortOrderBottomSheetDestination())
             }
         )
         SearchToolbar(
@@ -149,7 +153,8 @@ private fun AbonentsScreenBody(
     abonents: List<Abonent>,
     toolbarHeight: Dp,
     onOpenDocClick: () -> Unit,
-    onAbonentClick: (Abonent) -> Unit
+    onAbonentClick: (Abonent) -> Unit,
+    onSortClick: () -> Unit
 ) {
     when (uiState) {
         AbonentsUiState.NoExcelUri ->
@@ -170,6 +175,7 @@ private fun AbonentsScreenBody(
             AbonentList(
                 abonents = abonents,
                 onAbonentClick = onAbonentClick,
+                onSortClick = onSortClick,
                 toolbarHeight = toolbarHeight
             )
     }
@@ -219,6 +225,7 @@ fun IconAndMessage(
 fun AbonentList(
     abonents: List<Abonent>,
     onAbonentClick: (Abonent) -> Unit,
+    onSortClick: () -> Unit,
     toolbarHeight: Dp
 ) {
     LazyColumn(
@@ -227,10 +234,26 @@ fun AbonentList(
             .fillMaxSize()
             .padding(horizontal = 24.dp)
     ) {
+        item {
+            SortOrder(onSortClick)
+        }
         items(abonents) {
             AbonentItem(it, onAbonentClick)
         }
     }
+}
+
+@Composable
+fun SortOrder(
+    onSortClick: () -> Unit
+) {
+    Text(
+        text = "Sorting",
+        modifier = Modifier
+            .clickable {
+                onSortClick()
+            }
+    )
 }
 
 @Composable
