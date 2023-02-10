@@ -3,7 +3,9 @@ package com.github.dach83.gasmetering.di
 import android.content.Context
 import com.github.dach83.gasmetering.features.abonents.data.dispatchers.CoroutineDispatchers
 import com.github.dach83.gasmetering.features.abonents.data.repository.ExcelAbonentsRepository
+import com.github.dach83.gasmetering.features.abonents.data.repository.ExcelUriRepositoryImpl
 import com.github.dach83.gasmetering.features.abonents.domain.repository.AbonentsRepository
+import com.github.dach83.gasmetering.features.abonents.domain.repository.ExcelUriRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -29,4 +31,10 @@ class AbonentsModule {
         @ApplicationContext context: Context,
         dispatchers: CoroutineDispatchers
     ): AbonentsRepository = ExcelAbonentsRepository(context, dispatchers)
+
+    @Singleton
+    @Provides
+    fun provideExcelUriRepository(
+        @ApplicationContext context: Context
+    ): ExcelUriRepository = ExcelUriRepositoryImpl(context)
 }
