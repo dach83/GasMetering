@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -48,16 +49,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.github.dach83.gasmetering.R
 import com.github.dach83.gasmetering.core.presentation.navigation.NavigationTransitions
 import com.github.dach83.gasmetering.core.presentation.ui.theme.DarkSwamp
-import com.github.dach83.gasmetering.features.abonents.domain.model.Abonent
-import com.github.dach83.gasmetering.features.abonents.domain.model.Readings
-import com.github.dach83.gasmetering.features.abonents.domain.model.ReadingsBarChart
-import com.github.dach83.gasmetering.features.abonents.domain.model.ReadingsDate
+import com.github.dach83.gasmetering.features.abonents.domain.model.*
 import com.github.dach83.gasmetering.features.abonents.presentation.state.AbonentsUiState
 import com.github.dach83.gasmetering.features.destinations.SortOrderBottomSheetDestination
 import com.github.dach83.gasmetering.features.destinations.TakeReadingsScreenDestination
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.ramcosta.composedestinations.result.NavResult
+import com.ramcosta.composedestinations.result.ResultRecipient
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
@@ -68,16 +68,24 @@ import kotlin.math.roundToInt
 @Composable
 fun AbonentsScreen(
     viewModel: AbonentsViewModel = hiltViewModel(),
-    navigator: DestinationsNavigator
+    navigator: DestinationsNavigator,
+    resultRecipient: ResultRecipient<SortOrderBottomSheetDestination, AbonentSortOrder>,
 ) {
     val uiState = viewModel.uiState
     val filter by viewModel.filter.collectAsState()
     val abonents by viewModel.filteredAbonents.collectAsState(initial = emptyList())
 
+    // handle changing sort order from bottom sheet
+    resultRecipient.onNavResult { result ->
+        if (result is NavResult.Value) {
+            viewModel.changeSortOrder(newSortOrder = result.value)
+        }
+    }
+
     // open excel document launcher
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
-        onResult = viewModel::loadExcelFile
+        onResult = viewModel::loadExcelFile,
     )
 
     // collapsing toolbar height calculation
@@ -89,7 +97,7 @@ fun AbonentsScreen(
             override fun onPostScroll(
                 consumed: Offset,
                 available: Offset,
-                source: NestedScrollSource
+                source: NestedScrollSource,
             ): Offset {
                 // try to consume before LazyColumn to collapse toolbar if needed, hence pre-scroll
                 val delta = consumed.y
@@ -110,19 +118,23 @@ fun AbonentsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .nestedScroll(nestedScrollConnection)
+            .nestedScroll(nestedScrollConnection),
     ) {
         AbonentsScreenBody(
             uiState = uiState,
             abonents = abonents,
+            sortOrder = filter.sortOrder,
             toolbarHeight = toolbarHeight,
+            searchEnabled = filter.searchEnabled,
             onOpenDocClick = launcher::openExcelDoc,
             onAbonentClick = {
                 navigator.navigate(TakeReadingsScreenDestination())
             },
             onSortClick = {
-                navigator.navigate(SortOrderBottomSheetDestination())
-            }
+                navigator.navigate(
+                    SortOrderBottomSheetDestination(filter.sortOrder),
+                )
+            },
         )
         SearchToolbar(
             enabled = filter.searchEnabled,
@@ -132,10 +144,10 @@ fun AbonentsScreen(
             onOpenDocClick = launcher::openExcelDoc,
             modifier = Modifier
                 .height(toolbarHeight)
-                .offset { IntOffset(x = 0, y = toolbarOffsetHeightPx.roundToInt()) }
+                .offset { IntOffset(x = 0, y = toolbarOffsetHeightPx.roundToInt()) },
         )
         LoadingProgressIndicator(
-            uiState = uiState
+            uiState = uiState,
         )
     }
 }
@@ -151,32 +163,36 @@ private fun LoadingProgressIndicator(uiState: AbonentsUiState) {
 private fun AbonentsScreenBody(
     uiState: AbonentsUiState,
     abonents: List<Abonent>,
+    sortOrder: AbonentSortOrder,
     toolbarHeight: Dp,
+    searchEnabled: Boolean,
     onOpenDocClick: () -> Unit,
     onAbonentClick: (Abonent) -> Unit,
-    onSortClick: () -> Unit
+    onSortClick: () -> Unit,
 ) {
     when (uiState) {
         AbonentsUiState.NoExcelUri ->
             IconAndMessage(
                 iconId = R.drawable.openfolder,
                 textId = R.string.open_exel_doc,
-                onClick = onOpenDocClick
+                onClick = onOpenDocClick,
             )
 
         is AbonentsUiState.Error ->
             IconAndMessage(
                 iconId = R.drawable.warning,
                 textId = uiState.message,
-                onClick = onOpenDocClick
+                onClick = onOpenDocClick,
             )
 
         else ->
             AbonentList(
+                sortOrder = sortOrder,
                 abonents = abonents,
                 onAbonentClick = onAbonentClick,
                 onSortClick = onSortClick,
-                toolbarHeight = toolbarHeight
+                toolbarHeight = toolbarHeight,
+                searchEnabled = searchEnabled,
             )
     }
 }
@@ -184,7 +200,7 @@ private fun AbonentsScreenBody(
 private fun ManagedActivityResultLauncher<Array<String>, Uri?>.openExcelDoc() {
     val excelDocMime = arrayOf(
         "application/vnd.ms-excel",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
     launch(excelDocMime)
 }
@@ -193,11 +209,11 @@ private fun ManagedActivityResultLauncher<Array<String>, Uri?>.openExcelDoc() {
 fun IconAndMessage(
     @DrawableRes iconId: Int,
     @StringRes textId: Int,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
 ) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -205,66 +221,92 @@ fun IconAndMessage(
             modifier = Modifier
                 .clip(CircleShape)
                 .clickable { onClick() }
-                .padding(56.dp)
+                .padding(56.dp),
         ) {
             Image(
                 painter = painterResource(id = iconId),
                 contentDescription = "",
-                modifier = Modifier.size(100.dp)
+                modifier = Modifier.size(100.dp),
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = stringResource(id = textId),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AbonentList(
     abonents: List<Abonent>,
     onAbonentClick: (Abonent) -> Unit,
+    sortOrder: AbonentSortOrder,
     onSortClick: () -> Unit,
-    toolbarHeight: Dp
+    searchEnabled: Boolean,
+    toolbarHeight: Dp,
 ) {
     LazyColumn(
         contentPadding = PaddingValues(top = toolbarHeight),
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 24.dp),
     ) {
-        item {
-            SortOrder(onSortClick)
+        if (!searchEnabled) {
+            item {
+                SortOrder(sortOrder, onSortClick)
+            }
         }
-        items(abonents) {
-            AbonentItem(it, onAbonentClick)
+        items(
+            items = abonents,
+            key = { it.id },
+        ) {
+            AbonentItem(
+                abonent = it,
+                onAbonentClick = onAbonentClick,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+                    .animateItemPlacement(tween(300)),
+            )
         }
     }
 }
 
 @Composable
 fun SortOrder(
-    onSortClick: () -> Unit
+    sortOrder: AbonentSortOrder,
+    onSortClick: () -> Unit,
 ) {
-    Text(
-        text = "Sorting",
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .clickable {
-                onSortClick()
-            }
-    )
+            .padding(vertical = 16.dp)
+            .clickable { onSortClick() },
+    ) {
+        Text(
+            text = stringResource(id = sortOrder.key.title),
+            style = MaterialTheme.typography.labelLarge,
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Icon(
+            imageVector = sortOrder.direction.icon,
+            contentDescription = "Sorting direction",
+            modifier = Modifier.size(16.dp),
+        )
+    }
 }
 
 @Composable
 fun AbonentItem(
     abonent: Abonent,
-    onAbonentClick: (Abonent) -> Unit
+    onAbonentClick: (Abonent) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .clickable { onAbonentClick(abonent) }
+            .clickable { onAbonentClick(abonent) },
     ) {
         Spacer(modifier = Modifier.height(6.dp))
         AbonentAddress(abonent)
@@ -279,7 +321,7 @@ fun AbonentItem(
 private fun AbonentAddress(abonent: Abonent) {
     Text(
         text = "${abonent.id}, ${abonent.address}",
-        style = MaterialTheme.typography.labelLarge
+        style = MaterialTheme.typography.labelLarge,
     )
 }
 
@@ -289,7 +331,7 @@ fun LastReadingAndChart(readings: Readings) {
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth(),
     ) {
         readings.lastEntry()?.let { entry ->
             Reading(entry.key, entry.value)
@@ -302,7 +344,7 @@ fun LastReadingAndChart(readings: Readings) {
 @Composable
 private fun Reading(
     date: ReadingsDate,
-    value: Double
+    value: Double,
 ) {
     Column {
         ReadingValue(value)
@@ -315,7 +357,7 @@ private fun Reading(
 private fun ReadingDate(date: ReadingsDate) {
     Text(
         text = SimpleDateFormat("MMMM, yyyy", Locale.getDefault()).format(date.value),
-        style = MaterialTheme.typography.labelSmall
+        style = MaterialTheme.typography.labelSmall,
     )
 }
 
@@ -331,9 +373,9 @@ private fun ReadingValue(value: Double) {
                     .border(
                         width = 1.dp,
                         color = DarkSwamp,
-                        shape = RoundedCornerShape(2.dp)
+                        shape = RoundedCornerShape(2.dp),
                     )
-                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                    .padding(horizontal = 4.dp, vertical = 2.dp),
             )
         }
         Spacer(modifier = Modifier.width(2.dp))
@@ -345,9 +387,9 @@ private fun ReadingValue(value: Double) {
                     .border(
                         width = 1.dp,
                         color = Color.Red,
-                        shape = RoundedCornerShape(2.dp)
+                        shape = RoundedCornerShape(2.dp),
                     )
-                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                    .padding(horizontal = 4.dp, vertical = 2.dp),
             )
         }
     }
@@ -363,7 +405,7 @@ fun VolumesBarChart(readings: Readings) {
         verticalAlignment = Alignment.Bottom,
         modifier = Modifier
             .height(40.dp)
-            .horizontalScroll(scrollState)
+            .horizontalScroll(scrollState),
     ) {
         volumes.forEach { volume ->
             val barColor = if (volume.second < 0) {
@@ -375,19 +417,19 @@ fun VolumesBarChart(readings: Readings) {
                 .format(volume.first.value)
             Column(
                 verticalArrangement = Arrangement.Bottom,
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
                     text = month,
                     style = MaterialTheme.typography.labelSmall,
                     softWrap = false,
-                    modifier = Modifier.scale(0.8f)
+                    modifier = Modifier.scale(0.8f),
                 )
                 Spacer(
                     modifier = Modifier
                         .width(16.dp)
                         .fillMaxHeight(abs(volume.second))
-                        .background(color = barColor)
+                        .background(color = barColor),
                 )
             }
         }
@@ -406,7 +448,7 @@ fun SearchToolbar(
     surfaceVariant: Color = MaterialTheme.colorScheme.surfaceVariant,
     onSurfaceVariant: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     textStyle: TextStyle = MaterialTheme.typography.bodyLarge.copy(color = onSurfaceVariant),
-    shape: Shape = MaterialTheme.shapes.extraLarge
+    shape: Shape = MaterialTheme.shapes.extraLarge,
 ) {
     val backgroundBrush = if (enabled) {
         SolidColor(surfaceVariant)
@@ -442,12 +484,13 @@ fun SearchToolbar(
             .background(color = surfaceVariant)
             .clickable(
                 interactionSource = interactionSource,
-                indication = null
+                indication = null,
             ) {
                 onStartSearch("")
-            }
+            },
     ) {
-        Icon( // leading icon
+        Icon(
+            // leading icon
             imageVector = leadingIcon,
             contentDescription = "",
             tint = onSurfaceVariant,
@@ -458,13 +501,14 @@ fun SearchToolbar(
                     interactionSource = interactionSource,
                     indication = null,
                     enabled = enabled,
-                    onClick = onCancelSearch
+                    onClick = onCancelSearch,
                 )
                 .padding(8.dp)
-                .size(24.dp)
+                .size(24.dp),
 
         )
-        BasicTextField( // search query editor
+        BasicTextField(
+            // search query editor
             value = textField,
             onValueChange = {
                 if (enabled) {
@@ -482,15 +526,17 @@ fun SearchToolbar(
                 if (enabled) {
                     innerTextField()
                 } else {
-                    Text( // placeholder
+                    Text(
+                        // placeholder
                         text = stringResource(id = R.string.search_placeholder),
-                        style = textStyle
+                        style = textStyle,
                     )
                 }
-            }
+            },
         )
         if (enabled.not()) {
-            Icon( // trailing icon
+            Icon(
+                // trailing icon
                 imageVector = Icons.Default.FolderOpen,
                 contentDescription = "Open document",
                 tint = onSurfaceVariant,
@@ -499,7 +545,7 @@ fun SearchToolbar(
                     .clip(CircleShape)
                     .clickable(onClick = onOpenDocClick)
                     .padding(8.dp)
-                    .size(24.dp)
+                    .size(24.dp),
 
             )
         }

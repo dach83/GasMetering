@@ -3,4 +3,7 @@
     <string name="error_message">Error</string>
     <string name="search_placeholder">Search</string>
     <string name="open_exel_doc">Open Excel document</string>
+    <string name="sort_abonents_by_id">By abonent id</string>
+    <string name="sort_abonents_by_address">By address</string>
+    <string name="sort_abonents_by_last_metering_date">By last metering date</string>
 </resources>
